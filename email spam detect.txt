@@ -1,0 +1,71 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text  import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+
+#read data
+raw_data = pd.read_csv('/content/mail_data.csv')
+
+#replace null value
+mail_data = raw_data.where(pd.notnull(raw_data),'') 
+
+
+#lebel encoding
+#spam as 0 & ham as 1
+mail_data.loc[mail_data['Category']=='spam','Category',]=0
+mail_data.loc[mail_data['Category']=='ham','Category',]=1
+
+#seperate the data
+x = mail_data['Message']
+y = mail_data['Category']
+
+#split data into training data and test data
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2, random_state=3)
+
+
+#feature extraction
+extract_feature = TfidfVectorizer(min_df=1, stop_words='english',lowercase='True')
+x_train_feature = extract_feature.fit_transform(x_train) 
+x_test_feature = extract_feature.transform(x_test) 
+
+y_train = y_train.astype('int')
+y_test = y_test.astype('int')
+
+#train the model
+model = LogisticRegression()
+model.fit(x_train_feature,y_train)
+
+#predict train data
+predict_train = model.predict(x_train_feature)
+train_accuracy = accuracy_score(y_train, predict_train)
+
+# predict test data
+predict_test = model.predict(x_test_feature)
+test_accuracy = accuracy_score(y_test, predict_test)
+
+input_data = ["I've been searching for the right words to thank you for this breather. I promise i wont take your help for granted and will fulfil my promise. You have been wonderful and a blessing at all times"]
+#extract feature ( text to number )
+extract_input_feature = extract_feature.transform(input_data)
+
+#predict
+data_predict = model.predict(extract_input_feature)
+#print(data_predict)
+
+if data_predict == 1:
+  print('Ham')
+else:
+  print('Spam')
+
+
+
+
+
+
+
+
+
+
+
